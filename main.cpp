@@ -5,7 +5,7 @@
 #include "sort.hpp"
 #include "merge.hpp"
 
-int main() {
+void max_test() {
 
     std::vector<int> v = {1, 3, 4, 2, 5};
     int * arr = new int[5];
@@ -18,6 +18,14 @@ int main() {
     std::cout << maxV << std::endl;
     std::cout << maxA << std::endl;
 
+}
+
+void sorted_test() {
+
+    std::vector<int> v = {1, 3, 4, 2, 5};
+    int * arr = new int[5];
+    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
+
     std::vector<int> sorted = apps::sorted(v, 1, 3);
 
     std::cout << "-------------- Sorted -----------------" << std::endl;
@@ -27,10 +35,18 @@ int main() {
     }
     std::endl(std::cout);
 
-    std::cout << "-------------- Sort -----------------" << std::endl;
+}
 
-    apps::sort(arr, 1, 4);
-    apps::sort(v, 1 ,4);
+void bubblesort_test() {
+
+    std::vector<int> v = {1, 3, 4, 2, 5};
+    int * arr = new int[5];
+    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
+
+    std::cout << "-------------- BubbleSort -----------------" << std::endl;
+
+    apps::bubbleSort(arr, 1, 4);
+    apps::bubbleSort(v, 1, 4);
 
     std::cout << "Arr: " << std::endl;
 
@@ -45,6 +61,14 @@ int main() {
         std::cout << i << " ";
     }
     std::endl(std::cout);
+
+}
+
+void merge_test() {
+
+    std::vector<int> v = {1, 3, 4, 2, 5};
+    int * arr = new int[5];
+    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
 
     std::cout << "-------------- Merge -----------------" << std::endl;
 
@@ -65,4 +89,42 @@ int main() {
         std::cout << i << " ";
     }
     std::endl(std::cout);
+
+}
+
+void insertionsort_test() {
+
+    std::vector<int> v = {3, 1, 5, 4, 2};
+    int * arr = new int[5];
+    arr[0] = 3; arr[1] = 1; arr[2] = 5; arr[3] = 4; arr[4] = 2;
+
+    std::cout << "-------------- InsertionSort -----------------" << std::endl;
+
+    apps::insertionSort(arr, 0, 4);
+    apps::insertionSort(v, 0, 4);
+
+    std::cout << "Arr: " << std::endl;
+
+    for (int i = 0; i < 5; ++i) {
+        std::cout << arr[i] << " ";
+    }
+    std::endl(std::cout);
+
+    std::cout << "Vec: " << std::endl;
+
+    for (int i : v) {
+        std::cout << i << " ";
+    }
+    std::endl(std::cout);
+
+}
+
+int main() {
+
+    max_test();
+    sorted_test();
+    bubblesort_test();
+    merge_test();
+    insertionsort_test();
+
 }
