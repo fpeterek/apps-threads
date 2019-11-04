@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <thread>
 
 #include "max.hpp"
 #include "sort.hpp"
@@ -119,6 +120,55 @@ void insertionsort_test() {
 
 }
 
+void selectionsort_test() {
+
+    std::vector<int> v = {3, 1, 5, 4, 2};
+    int * arr = new int[5];
+    arr[0] = 3; arr[1] = 1; arr[2] = 5; arr[3] = 4; arr[4] = 2;
+
+    std::cout << "-------------- SelectionSort -----------------" << std::endl;
+
+    apps::insertionSort(arr, 1, 3);
+    apps::insertionSort(v, 1, 3);
+
+    std::cout << "Arr: " << std::endl;
+
+    for (int i = 0; i < 5; ++i) {
+        std::cout << arr[i] << " ";
+    }
+    std::endl(std::cout);
+
+    std::cout << "Vec: " << std::endl;
+
+    for (int i : v) {
+        std::cout << i << " ";
+    }
+    std::endl(std::cout);
+
+}
+
+void parallel_test() {
+
+    std::cout << "-------------- Parallelism Test -----------------" << std::endl;
+
+    std::vector<int> v = {3, 1, 5, 4, 2};
+
+    std::thread left([&]() -> void { apps::insertionSort(v, 0, 1); });
+    std::thread right([&]() -> void { apps::insertionSort(v, 2, 4); });
+
+    left.join();
+    right.join();
+
+    std::vector<int> merged = apps::merge(v, 0, 1, v, 2, 4);
+
+    std::cout << "Vec: " << std::endl;
+
+    for (int i : merged) {
+        std::cout << i << " ";
+    }
+
+}
+
 int main() {
 
     max_test();
@@ -126,5 +176,7 @@ int main() {
     bubblesort_test();
     merge_test();
     insertionsort_test();
+    selectionsort_test();
+    parallel_test();
 
 }

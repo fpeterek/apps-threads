@@ -11,6 +11,44 @@
 namespace apps {
 
     template<typename type>
+    void selectionSort(type * arr, const uint64_t first, const uint64_t last) {
+
+        for (uint64_t i = first; i < last; ++i) {
+
+            uint64_t min = i;
+
+            for (uint64_t j = i; j <= last; ++j) {
+                arr[min] > arr[j] and min = j;
+            }
+
+            type temp = arr[min];
+            arr[min] = arr[i];
+            arr[i] = temp;
+
+        }
+
+    }
+
+    template<typename type>
+    void selectionSort(std::vector<type> v, const uint64_t first, const uint64_t last) {
+
+        for (uint64_t i = first; i < last; ++i) {
+
+            uint64_t min = i;
+
+            for (uint64_t j = i; j <= last; ++j) {
+                v[min] > v[j] and min = j;
+            }
+
+            type temp = v[min];
+            v[min] = v[i];
+            v[i] = temp;
+
+        }
+
+    }
+
+    template<typename type>
     void insertionSort(type * arr, const uint64_t first, const uint64_t last) {
 
         for (uint64_t i = first + 1; i <= last; ++i) {
