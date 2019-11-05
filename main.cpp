@@ -60,7 +60,6 @@ void time(std::function<void(void)> fun) {
     fun();
 
     const auto t2 = std::chrono::high_resolution_clock::now();
-
     const auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
     std::cout << "Execution time: " << time_span.count() << " seconds." << std::endl;
@@ -166,7 +165,7 @@ void four_threads(const size_t size, const bool printVector = false) {
 
 int main() {
 
-    constexpr size_t size = 1'0;00'00;0;
+    constexpr size_t size = 1'000'000;
 
     one_thread<uint64_t>(size);
     two_threads<uint64_t>(size);
