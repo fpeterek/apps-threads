@@ -30,7 +30,7 @@ namespace apps {
     }
 
     template<typename type>
-    void selectionSort(std::vector<type> v, const uint64_t first, const uint64_t last) {
+    void selectionSort(std::vector<type> & v, const uint64_t first, const uint64_t last) {
 
         for (uint64_t i = first; i < last; ++i) {
 
@@ -74,7 +74,7 @@ namespace apps {
             type temp = v[i];
             uint64_t j;
 
-            for (j = i; j > first and v[j - 1] > temp ; --j) {
+            for (j = i; j > first and v[j - 1] < temp ; --j) {
                 v[j] = v[j - 1];
             }
 

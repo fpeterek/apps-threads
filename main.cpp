@@ -1,182 +1,178 @@
 #include <iostream>
 #include <vector>
 #include <thread>
+#include <random>
 
 #include "max.hpp"
 #include "sort.hpp"
 #include "merge.hpp"
 
-void max_test() {
+template<typename type>
+std::vector<type> get_arr(size_t size) {
 
-    std::vector<int> v = {1, 3, 4, 2, 5};
-    int * arr = new int[5];
-    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
+    std::vector<type> vector;
 
-    int maxV = apps::max(v, 1, 4);
-    int maxA = apps::max(arr, 1, 4);
+    std::mt19937_64 rand = std::mt19937_64(std::random_device()());
+    std::uniform_int_distribution<type> dist(std::numeric_limits<type>::min(), std::numeric_limits<type>::max());
 
-    std::cout << "-------------- Max -----------------" << std::endl;
-    std::cout << maxV << std::endl;
-    std::cout << maxA << std::endl;
+    for (size_t i = 0; i < size; ++i) {
+        vector.emplace_back(i);
+    }
+
+    return vector;
 
 }
 
-void sorted_test() {
+template<typename type>
+void print_vector(std::ostream & os, const std::vector<type> & v, const size_t first, const size_t last) {
 
-    std::vector<int> v = {1, 3, 4, 2, 5};
-    int * arr = new int[5];
-    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
-
-    std::vector<int> sorted = apps::sorted(v, 1, 3);
-
-    std::cout << "-------------- Sorted -----------------" << std::endl;
-
-    for (int i : sorted) {
-        std::cout << i << " ";
+    for (size_t i = first; i <= last; ++i) {
+        os << v[i] << std::endl;
     }
-    std::endl(std::cout);
 
 }
 
-void bubblesort_test() {
-
-    std::vector<int> v = {1, 3, 4, 2, 5};
-    int * arr = new int[5];
-    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
-
-    std::cout << "-------------- BubbleSort -----------------" << std::endl;
-
-    apps::bubbleSort(arr, 1, 4);
-    apps::bubbleSort(v, 1, 4);
-
-    std::cout << "Arr: " << std::endl;
-
-    for (int i = 0; i < 5; ++i) {
-        std::cout << arr[i] << " ";
+template<typename type>
+std::ostream & operator<<(std::ostream & os, const std::vector<type> & v) {
+    for (const type & t : v) {
+        os << t << std::endl;
     }
-    std::endl(std::cout);
+    return os;
+}
 
-    std::cout << "Vec: " << std::endl;
+template<typename type>
+bool is_sorted(const std::vector<type> & v, const size_t first, const size_t last) {
 
-    for (int i : v) {
-        std::cout << i << " ";
+    for (size_t i = first; i < last; ++i) {
+        if (v[i] < v[i + 1]) {
+            return false;
+        }
     }
-    std::endl(std::cout);
+
+    return true;
 
 }
 
-void merge_test() {
+void time(std::function<void(void)> fun) {
 
-    std::vector<int> v = {1, 3, 4, 2, 5};
-    int * arr = new int[5];
-    arr[0] = 1; arr[1] = 3; arr[2] = 4; arr[3] = 2; arr[4] = 5;
+    const auto t1 = std::chrono::high_resolution_clock::now();
 
-    std::cout << "-------------- Merge -----------------" << std::endl;
+    fun();
 
-    std::vector<int> v1 = apps::sorted(v, 0, 1);
-    std::vector<int> v2 = apps::sorted(v, 2, 4);
+    const auto t2 = std::chrono::high_resolution_clock::now();
 
-    for (int i : v1) {
-        std::cout << i << " ";
-    }
-    std::endl(std::cout);
-    for (int i : v2) {
-        std::cout << i << " ";
-    }
-    std::endl(std::cout);
+    const auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
-    std::vector<int> m = apps::merge(v1, 0, 1, v2, 0, 2);
-    for (int i : m) {
-        std::cout << i << " ";
-    }
-    std::endl(std::cout);
+    std::cout << "Execution time: " << time_span.count() << " seconds." << std::endl;
 
 }
 
-void insertionsort_test() {
+template<typename type>
+void one_thread(const size_t size, const bool printVector = false) {
 
-    std::vector<int> v = {3, 1, 5, 4, 2};
-    int * arr = new int[5];
-    arr[0] = 3; arr[1] = 1; arr[2] = 5; arr[3] = 4; arr[4] = 2;
+    auto vector = get_arr<type>(size);
 
-    std::cout << "-------------- InsertionSort -----------------" << std::endl;
+    std::cout << "Sorting on one thread" << std::endl;
 
-    apps::insertionSort(arr, 0, 4);
-    apps::insertionSort(v, 0, 4);
+    auto sort = [&]() -> void { apps::insertionSort(vector, 0, vector.size() - 1); };
 
-    std::cout << "Arr: " << std::endl;
+    time([&]() -> void { std::thread t(sort); t.join(); std::cout << "Sorted" << std::endl; });
 
-    for (int i = 0; i < 5; ++i) {
-        std::cout << arr[i] << " ";
+    std::cout << "Checking if vector is sorted: " << is_sorted(vector, 0, vector.size() - 1) << std::endl;
+
+    if (printVector) {
+        std::cout << vector << std::endl;
     }
-    std::endl(std::cout);
-
-    std::cout << "Vec: " << std::endl;
-
-    for (int i : v) {
-        std::cout << i << " ";
-    }
-    std::endl(std::cout);
 
 }
 
-void selectionsort_test() {
+template<typename type>
+void two_threads(const size_t size, const bool printVector = false) {
 
-    std::vector<int> v = {3, 1, 5, 4, 2};
-    int * arr = new int[5];
-    arr[0] = 3; arr[1] = 1; arr[2] = 5; arr[3] = 4; arr[4] = 2;
+    auto vector = get_arr<type>(size);
 
-    std::cout << "-------------- SelectionSort -----------------" << std::endl;
+    std::cout << "Sorting on two threads" << std::endl;
 
-    apps::insertionSort(arr, 1, 3);
-    apps::insertionSort(v, 1, 3);
+    const size_t middle = vector.size() / 2;
 
-    std::cout << "Arr: " << std::endl;
+    auto sortL = [&]() -> void { apps::insertionSort(vector, 0, middle); };
+    auto sortR = [&]() -> void { apps::insertionSort(vector, middle + 1, vector.size() - 1); };
 
-    for (int i = 0; i < 5; ++i) {
-        std::cout << arr[i] << " ";
+    auto sort = [&]() -> void {
+        std::thread t(sortL);
+        std::thread t2(sortR);
+        t.join();
+        t2.join();
+        std::cout << "Sorted" << std::endl;
+
+    };
+
+    time(sort);
+
+    auto merged = apps::merge(vector, 0, middle, vector, middle + 1, vector.size() - 1);
+
+    std::cout << "Checking if vector is sorted: " << is_sorted(merged, 0, merged.size() - 1) << std::endl;
+
+    if (printVector) {
+        std::cout << merged << std::endl;
     }
-    std::endl(std::cout);
-
-    std::cout << "Vec: " << std::endl;
-
-    for (int i : v) {
-        std::cout << i << " ";
-    }
-    std::endl(std::cout);
 
 }
 
-void parallel_test() {
+template<typename type>
+void four_threads(const size_t size, const bool printVector = false) {
 
-    std::cout << "-------------- Parallelism Test -----------------" << std::endl;
+    auto vector = get_arr<type>(size);
 
-    std::vector<int> v = {3, 1, 5, 4, 2};
+    std::cout << "Sorting on four threads" << std::endl;
 
-    std::thread left([&]() -> void { apps::insertionSort(v, 0, 1); });
-    std::thread right([&]() -> void { apps::insertionSort(v, 2, 4); });
+    const size_t left = vector.size() / 4;
+    const size_t middle = vector.size() / 4 * 2;
+    const size_t right = vector.size() / 4 * 3;
 
-    left.join();
-    right.join();
+    auto sortLL = [&]() -> void { apps::insertionSort(vector, 0, left); };
+    auto sortML = [&]() -> void { apps::insertionSort(vector, left + 1, middle); };
+    auto sortLR = [&]() -> void { apps::insertionSort(vector, middle + 1, right); };
+    auto sortRR = [&]() -> void { apps::insertionSort(vector, right + 1, vector.size() - 1); };
 
-    std::vector<int> merged = apps::merge(v, 0, 1, v, 2, 4);
+    auto sort = [&]() -> void {
+        std::thread t1(sortLL);
+        std::thread t2(sortML);
+        std::thread t3(sortLR);
+        std::thread t4(sortRR);
 
-    std::cout << "Vec: " << std::endl;
+        t1.join();
+        t2.join();
+        t3.join();
+        t4.join();
+        std::cout << "Sorted" << std::endl;
 
-    for (int i : merged) {
-        std::cout << i << " ";
+    };
+
+    time(sort);
+
+    auto mergedLeft = apps::merge(vector, 0, left, vector, left + 1, middle);
+    auto mergedRight = apps::merge(vector, middle + 1, right, vector, right + 1, vector.size() - 1);
+
+    auto merged = apps::merge(mergedLeft, 0, mergedLeft.size() - 1, mergedRight, 0, mergedRight.size() - 1);
+
+    std::cout << "Checking if vector is sorted: " << is_sorted(merged, 0, merged.size() - 1) << std::endl;
+
+    if (printVector) {
+        std::cout << merged << std::endl;
     }
 
 }
 
 int main() {
 
-    max_test();
-    sorted_test();
-    bubblesort_test();
-    merge_test();
-    insertionsort_test();
-    selectionsort_test();
-    parallel_test();
+    constexpr size_t size = 1'0;00'00;0;
+
+    one_thread<uint64_t>(size);
+    two_threads<uint64_t>(size);
+    four_threads<uint64_t>(size);
+
+    constexpr size_t s2 = 5;
+    four_threads<uint64_t>(s2, true);
 
 }
