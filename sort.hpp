@@ -8,17 +8,19 @@
 #include <cstdint>
 #include <vector>
 
+#include "comparators.hpp"
+
 namespace apps {
 
     template<typename type>
-    void selectionSort(type * arr, const uint64_t first, const uint64_t last) {
+    void selectionSort(type * arr, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
 
         for (uint64_t i = first; i < last; ++i) {
 
             uint64_t min = i;
 
             for (uint64_t j = i; j <= last; ++j) {
-                arr[min] > arr[j] and min = j;
+                cmp(arr[min], arr[j]) and min = j;
             }
 
             type temp = arr[min];
@@ -30,14 +32,14 @@ namespace apps {
     }
 
     template<typename type>
-    void selectionSort(std::vector<type> & v, const uint64_t first, const uint64_t last) {
+    void selectionSort(std::vector<type> & v, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
 
         for (uint64_t i = first; i < last; ++i) {
 
             uint64_t min = i;
 
             for (uint64_t j = i; j <= last; ++j) {
-                v[min] > v[j] and min = j;
+                cmp(v[min], v[j]) and min = j;
             }
 
             type temp = v[min];
@@ -49,14 +51,14 @@ namespace apps {
     }
 
     template<typename type>
-    void insertionSort(type * arr, const uint64_t first, const uint64_t last) {
+    void insertionSort(type * arr, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
 
         for (uint64_t i = first + 1; i <= last; ++i) {
 
             type temp = arr[i];
             uint64_t j;
 
-            for (j = i; j > first and arr[j - 1] > temp ; --j) {
+            for (j = i; j > first and cmp(arr[j - 1], temp); --j) {
                 arr[j] = arr[j - 1];
             }
 
@@ -67,14 +69,14 @@ namespace apps {
     }
 
     template<typename type>
-    void insertionSort(std::vector<type> & v, const uint64_t first, const uint64_t last) {
+    void insertionSort(std::vector<type> & v, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
 
         for (uint64_t i = first + 1; i <= last; ++i) {
 
             type temp = v[i];
             uint64_t j;
 
-            for (j = i; j > first and v[j - 1] < temp ; --j) {
+            for (j = i; j > first and cmp(v[j - 1], temp); --j) {
                 v[j] = v[j - 1];
             }
 
@@ -85,10 +87,10 @@ namespace apps {
     }
 
     template<typename type>
-    void bubbleSort(type * arr, const uint64_t first, const uint64_t last) {
+    void bubbleSort(type * arr, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
         for (uint64_t i = first; i < last - 1; ++i) {
             for (uint64_t j = first; j < last - 1; ++j) {
-                if (arr[j] > arr[j + 1]) {
+                if (cmp(arr[j], arr[j + 1])) {
                     type temp = arr[j];
                     arr[j] = arr[j+1];
                     arr[j+1] = temp;
@@ -98,10 +100,10 @@ namespace apps {
     }
 
     template<typename type>
-    void bubbleSort(std::vector<type> & v, const uint64_t first, const uint64_t last) {
+    void bubbleSort(std::vector<type> & v, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
         for (uint64_t i = first; i < last - 1; ++i) {
             for (uint64_t j = first; j < last - 1; ++j) {
-                if (v[j] > v[j + 1]) {
+                if (cmp(v[j], v[j + 1])) {
                     type temp = v[j];
                     v[j] = v[j + 1];
                     v[j + 1] = temp;
@@ -111,14 +113,14 @@ namespace apps {
     }
 
     template<typename type>
-    std::vector<type> sorted(const std::vector<type> & vector, const uint64_t first, const uint64_t last) {
+    std::vector<type> sorted(const std::vector<type> & vector, const uint64_t first, const uint64_t last, std::function<bool(const type &, const type &)> cmp) {
 
         std::vector<type> v;
         for (uint64_t i = first; i <= last; ++i) {
             v.emplace_back(vector[i]);
         }
 
-        bubbleSort(v, 0, v.size() - 1);
+        bubbleSort(v, 0, v.size() - 1, cmp);
         return v;
     }
 

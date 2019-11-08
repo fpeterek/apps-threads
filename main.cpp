@@ -41,10 +41,10 @@ std::ostream & operator<<(std::ostream & os, const std::vector<type> & v) {
 }
 
 template<typename type>
-bool is_sorted(const std::vector<type> & v, const size_t first, const size_t last) {
+bool is_sorted(const std::vector<type> & v, const size_t first, const size_t last, std::function<bool(const type &, const type &)> cmp) {
 
     for (size_t i = first; i < last; ++i) {
-        if (v[i] < v[i + 1]) {
+        if (not cmp(v[i], v[i + 1])) {
             return false;
         }
     }
@@ -53,7 +53,7 @@ bool is_sorted(const std::vector<type> & v, const size_t first, const size_t las
 
 }
 
-void time(std::function<void(void)> fun) {
+void time(const std::function<void(void)> & fun) {
 
     const auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -69,15 +69,17 @@ void time(std::function<void(void)> fun) {
 template<typename type>
 void one_thread(const size_t size, const bool printVector = false) {
 
+    std::function<bool(const uint64_t &, const uint64_t &)> cmp(apps::lt<uint64_t>);
+
     auto vector = get_arr<type>(size);
 
     std::cout << "Sorting on one thread" << std::endl;
 
-    auto sort = [&]() -> void { apps::insertionSort(vector, 0, vector.size() - 1); };
+    auto sort = [&]() -> void { apps::insertionSort(vector, 0, vector.size() - 1, cmp); };
 
     time([&]() -> void { std::thread t(sort); t.join(); std::cout << "Sorted" << std::endl; });
 
-    std::cout << "Checking if vector is sorted: " << is_sorted(vector, 0, vector.size() - 1) << std::endl;
+    std::cout << "Checking if vector is sorted: " << is_sorted(vector, 0, vector.size() - 1, cmp) << std::endl;
 
     if (printVector) {
         std::cout << vector << std::endl;
@@ -88,14 +90,16 @@ void one_thread(const size_t size, const bool printVector = false) {
 template<typename type>
 void two_threads(const size_t size, const bool printVector = false) {
 
+    std::function<bool(const uint64_t &, const uint64_t &)> cmp(apps::lt<uint64_t>);
+
     auto vector = get_arr<type>(size);
 
     std::cout << "Sorting on two threads" << std::endl;
 
     const size_t middle = vector.size() / 2;
 
-    auto sortL = [&]() -> void { apps::insertionSort(vector, 0, middle); };
-    auto sortR = [&]() -> void { apps::insertionSort(vector, middle + 1, vector.size() - 1); };
+    auto sortL = [&]() -> void { apps::insertionSort(vector, 0, middle, cmp); };
+    auto sortR = [&]() -> void { apps::insertionSort(vector, middle + 1, vector.size() - 1, cmp); };
 
     auto sort = [&]() -> void {
         std::thread t(sortL);
@@ -108,9 +112,9 @@ void two_threads(const size_t size, const bool printVector = false) {
 
     time(sort);
 
-    auto merged = apps::merge(vector, 0, middle, vector, middle + 1, vector.size() - 1);
+    auto merged = apps::merge(vector, 0, middle, vector, middle + 1, vector.size() - 1, cmp);
 
-    std::cout << "Checking if vector is sorted: " << is_sorted(merged, 0, merged.size() - 1) << std::endl;
+    std::cout << "Checking if vector is sorted: " << is_sorted(merged, 0, merged.size() - 1, cmp) << std::endl;
 
     if (printVector) {
         std::cout << merged << std::endl;
@@ -121,6 +125,8 @@ void two_threads(const size_t size, const bool printVector = false) {
 template<typename type>
 void four_threads(const size_t size, const bool printVector = false) {
 
+    std::function<bool(const uint64_t &, const uint64_t &)> cmp(apps::gt<uint64_t>);
+
     auto vector = get_arr<type>(size);
 
     std::cout << "Sorting on four threads" << std::endl;
@@ -129,10 +135,10 @@ void four_threads(const size_t size, const bool printVector = false) {
     const size_t middle = vector.size() / 4 * 2;
     const size_t right = vector.size() / 4 * 3;
 
-    auto sortLL = [&]() -> void { apps::insertionSort(vector, 0, left); };
-    auto sortML = [&]() -> void { apps::insertionSort(vector, left + 1, middle); };
-    auto sortLR = [&]() -> void { apps::insertionSort(vector, middle + 1, right); };
-    auto sortRR = [&]() -> void { apps::insertionSort(vector, right + 1, vector.size() - 1); };
+    auto sortLL = [&]() -> void { apps::insertionSort(vector, 0, left, cmp); };
+    auto sortML = [&]() -> void { apps::insertionSort(vector, left + 1, middle, cmp); };
+    auto sortLR = [&]() -> void { apps::insertionSort(vector, middle + 1, right, cmp); };
+    auto sortRR = [&]() -> void { apps::insertionSort(vector, right + 1, vector.size() - 1, cmp); };
 
     auto sort = [&]() -> void {
         std::thread t1(sortLL);
@@ -150,12 +156,12 @@ void four_threads(const size_t size, const bool printVector = false) {
 
     time(sort);
 
-    auto mergedLeft = apps::merge(vector, 0, left, vector, left + 1, middle);
-    auto mergedRight = apps::merge(vector, middle + 1, right, vector, right + 1, vector.size() - 1);
+    auto mergedLeft = apps::merge(vector, 0, left, vector, left + 1, middle, cmp);
+    auto mergedRight = apps::merge(vector, middle + 1, right, vector, right + 1, vector.size() - 1, cmp);
 
-    auto merged = apps::merge(mergedLeft, 0, mergedLeft.size() - 1, mergedRight, 0, mergedRight.size() - 1);
+    auto merged = apps::merge(mergedLeft, 0, mergedLeft.size() - 1, mergedRight, 0, mergedRight.size() - 1, cmp);
 
-    std::cout << "Checking if vector is sorted: " << is_sorted(merged, 0, merged.size() - 1) << std::endl;
+    std::cout << "Checking if vector is sorted: " << is_sorted(merged, 0, merged.size() - 1, cmp) << std::endl;
 
     if (printVector) {
         std::cout << merged << std::endl;
@@ -167,9 +173,29 @@ int main() {
 
     constexpr size_t size = 1'000'000;
 
-    one_thread<uint64_t>(size);
-    two_threads<uint64_t>(size);
-    four_threads<uint64_t>(size);
+
+    std::vector<uint64_t> v1 = {1, 3, 5, 2, 4, 6};
+    std::vector<uint64_t> dest;
+    dest.reserve(v1.size());
+
+    std::function<bool(const uint64_t &, const uint64_t &)> cmp(apps::gt<uint64_t>);
+
+    apps::mergeInto(v1, 0, 2, v1, 3, 5, dest, 0, cmp);
+    for (uint64_t i : dest) {
+        std::cout << i << " ";
+    }
+    std::endl(std::cout);
+
+    auto dest2 = apps::merge(v1, 0, 2, v1, 3, 5, cmp);
+    for (uint64_t i : dest2) {
+        std::cout << i << " ";
+    }
+    std::endl(std::cout);
+
+
+    //one_thread<uint64_t>(size);
+    //two_threads<uint64_t>(size);
+    //four_threads<uint64_t>(size);
 
     constexpr size_t s2 = 5;
     four_threads<uint64_t>(s2, true);
