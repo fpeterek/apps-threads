@@ -7,6 +7,11 @@
 #include "sort.hpp"
 #include "merge.hpp"
 
+typedef std::function<bool(const int64_t &, const int64_t &)> comparator;
+
+comparator cmp(apps::lt<int64_t>);
+comparator gt(apps::gt<int64_t >);
+
 template<typename type>
 std::vector<type> get_arr(size_t size) {
 
@@ -16,7 +21,8 @@ std::vector<type> get_arr(size_t size) {
     std::uniform_int_distribution<type> dist(std::numeric_limits<type>::min(), std::numeric_limits<type>::max());
 
     for (size_t i = 0; i < size; ++i) {
-        vector.emplace_back(i);
+        vector.emplace_back(dist(rand));
+        //vector.emplace_back(i);
     }
 
     return vector;
@@ -53,7 +59,7 @@ bool is_sorted(const std::vector<type> & v, const size_t first, const size_t las
 
 }
 
-void time(const std::function<void(void)> & fun) {
+double time(const std::function<void(void)> & fun) {
 
     const auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -63,6 +69,8 @@ void time(const std::function<void(void)> & fun) {
     const auto time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
     std::cout << "Execution time: " << time_span.count() << " seconds." << std::endl;
+
+    return time_span.count();
 
 }
 
@@ -169,35 +177,90 @@ void four_threads(const size_t size, const bool printVector = false) {
 
 }
 
+
+void merge(std::vector<int64_t> & v, uint64_t threads) {
+
+    const size_t fraction = v.size() / threads;
+
+    std::vector<int64_t> res;
+    for (uint64_t i = 0; i < fraction; ++i) {
+        res.emplace_back(v[i]);
+    }
+
+    for (uint64_t i = fraction; i < v.size() - fraction + 1; i += fraction) {
+
+        uint64_t from = i;
+        uint64_t to = i + fraction - 1;
+        if (v.size() - to < fraction) {
+            to = v.size() - 1;
+        }
+
+        res = apps::merge(res, 0, res.size() - 1, v, from, to, cmp);
+
+    }
+
+    v = std::move(res);
+
+}
+
+
+
+void sortOnXThreads(std::vector<int64_t> v, uint64_t threads) {
+
+    const size_t fraction = v.size() / threads;
+    std::vector<std::thread> t;
+
+    for (uint64_t i = 0; i < v.size() - fraction + 1; i += fraction) {
+
+        uint64_t from = i;
+        uint64_t to = i + fraction - 1;
+        if (v.size() - to < fraction) {
+            to = v.size() - 1;
+        }
+
+        t.emplace_back(
+                [&](uint64_t f, uint64_t t) -> void {
+                    apps::insertionSort(v, f, t, cmp);
+                },
+                from, to
+        );
+
+    }
+
+    for (auto & th : t) {
+        th.join();
+    }
+
+    merge(v, threads);
+
+    if (not is_sorted(v, 0, v.size() - 1, gt)) {
+        throw std::runtime_error("Vector is sorted incorrectly");
+    }
+
+}
+
 int main() {
 
-    constexpr size_t size = 1'000'000;
+    constexpr size_t size = 10'000;
 
+    std::vector<int64_t> v = get_arr<int64_t >(size);
 
-    std::vector<uint64_t> v1 = {1, 3, 5, 2, 4, 6};
-    std::vector<uint64_t> dest;
-    dest.reserve(v1.size());
+    uint64_t threads = 1;
 
-    std::function<bool(const uint64_t &, const uint64_t &)> cmp(apps::gt<uint64_t>);
+    double last = time( [&]() { sortOnXThreads(v, threads); } );
 
-    apps::mergeInto(v1, 0, 2, v1, 3, 5, dest, 0, cmp);
-    for (uint64_t i : dest) {
-        std::cout << i << " ";
+    while (++threads) {
+
+        double current = time( [&]() { sortOnXThreads(v, threads); } );
+
+        if (current >= last) {
+            break;
+        }
+
+        last = current;
+
     }
-    std::endl(std::cout);
 
-    auto dest2 = apps::merge(v1, 0, 2, v1, 3, 5, cmp);
-    for (uint64_t i : dest2) {
-        std::cout << i << " ";
-    }
-    std::endl(std::cout);
-
-
-    //one_thread<uint64_t>(size);
-    //two_threads<uint64_t>(size);
-    //four_threads<uint64_t>(size);
-
-    constexpr size_t s2 = 5;
-    four_threads<uint64_t>(s2, true);
+    std::cout << "Optimal performace reached on " << threads - 1 << " threads, time: " << last << std::endl;
 
 }
